@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>코드스피츠80 한 붓 그리기 게임을 만들며 익히는 역할 모델</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <main>
+        <table id="stage"></table>
+    </main>
+    <script>
+        const stageWidth = 8;
+        const stageHeight = 8;
+        const blockTypes = [0, 1, 2, 3, 4];
+
+
+        /*const Game = { 
+            //게임은본체이므로한개만있으면되기때문에싱글톤오브젝트로생성
+            //초기화-필요한정보를바탕으로게임본체를생성한다.
+            //렌더-그림을갱신함
+            //이벤트관련-각블록에서이벤트를처리함
+        };*/
+
+        const Block = class {
+            
+            static GET(type = parseInt(Math.random() * 5)) {
+                return new Block(type);
+            }
+
+            constructor(type) {
+                this._type = type;
+            }
+
+            get image() { return `url(\"img/${this._type}.png\"`; }
+            get type() { return this._type; }
+        }
+
+
+
+        const Game = (_ => {
+            const column = 8, row = 8, blockSize = 80;
+            const data = [];
+            const el = tagName => document.createElement(tagName);
+            let table;
+            const init = selectorText => {
+                table = document.querySelector(selectorText);
+                for(let i = 0; i < row; i++) {
+                    const r = [];
+                    data.push(r);
+                    for(let j = 0; j < column; j++) r[j] = Block.GET();
+                }
+                table.addEventListener('mousedown', down);
+                table.addEventListener('mouseup', up);
+                table.addEventListener('mouseleave', up);
+                table.addEventListener('mousemove', move);
+                render();
+            }
+            let isDown = false,
+                startBlock = null,
+                currBlock = null;
+            const selected = [];
+            
+            const getBlock = (x, y) => {
+                const {top:T, left:L} = table.getBoundingClientRect();
+                const relativeX = x - L, 
+                      relativeY = y - T, 
+                      maxColumnSize = blockSize * column,
+                      maxRowSize = blockSize * row;
+                if(relativeX < 0 || relativeY < 0 || relativeX > maxRowSize || relativeY > maxColumnSize) {
+                    // pointer Out!
+                    return null;
+                }
+                // pointer In!
+                return data[parseInt(relativeY / blockSize)][parseInt(relativeX / blockSize)];
+            }
+
+            const down = ({pageX:x, pageY:y}) => {
+                if(isDown) return;
+                const curr = getBlock(x, y);
+                if(!curr) return;
+                //isDown = true;
+                selected.length = 0;
+                selected[0] = startBlock = currBlock = curr;
+                render();
+                console.log(curr);
+            }
+
+            const up = ({pageX:x, pageY:y}) => {
+            
+            }
+
+            const move = ({pageX:x, pageY:y}) => {
+             
+            }
+
+            const render = _ => {
+                table.innerHTML = '';
+                data.forEach(row => {
+                    table.appendChild(
+                        row.reduce((tr, block) => {
+                            const td = el('td');
+                            console.log(td);
+                            td.style.cssText = `
+                            background: ${block ? block.image : 'transparent'});
+                            width: ${blockSize}px;
+                            height: ${blockSize}px;
+                            cursor: pointer;
+                            `;
+                            tr.appendChild(td);
+                            return tr;
+                        }, el('tr'))
+                    )
+                })
+            };
+
+            return init;
+        })();
+        Game('#stage');
+    </script>
+</body>
+</html>
